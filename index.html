@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercadito Virtual - Mendoza 🌄</title>
+
+    <!-- 7. Breadcrumbs estructurados JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Mercadito Virtual Mendoza",
+        "url": "https://mercaditovirtualmendoza.com",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://mercaditovirtualmendoza.com/?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- 2. Defer en scripts externos -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HZ3T2R0ZPP"></script>
+    <script defer src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-HZ3T2R0ZPP');
+    </script>
+
+    <!-- 4. Service Worker para modo offline -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => console.log('SW registrado:', registration))
+                    .catch(error => console.log('SW error:', error));
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="badge-mendoza">
+        🚚 <strong>ENVIOS</strong> en Guaymallén • 💬 Pedí en <strong>30 SEGUNDOS</strong> por WhatsApp • ⏰ <strong>ENTREGA</strong> en 24hs
+    </div>
+
+    <header>
+        <div class="logo" id="logoBtn">
+            <div class="logo-box">
+                <!-- 8. Optimización WebP con fallback -->
+                <picture>
+                    <source srcset="logo-mercadito-virtual.webp" type="image/webp">
+                    <source srcset="logo-mercadito-virtual.png" type="image/png">
+                    <img src="logo-mercadito-virtual.png" alt="Mercadito Virtual" width="50" height="50">
+                </picture>
+            </div>
+            <div class="logo-text">
+                <span class="main-name">Mercadito Virtual</span>
+                <span class="sub-name">Mendoza 🌄</span>
+            </div>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Buscar productos..." aria-label="Buscar productos">
+        </div>
+
+        <button class="cart-btn" id="cartBtn" aria-label="Abrir carrito">
+            🛒 <span id="cartText">Carrito (0)</span>
+        </button>
+    </header>
+
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">📦 Comprá en Guaymallén<br>🚚 Te lo llevamos HOY</h1>
+            <p class="hero-subtitle">Pedí por WhatsApp en 30 segundos. Sin vueltas, sin mínimo.</p>
+            <button class="hero-cta" onclick="scrollToProducts()" aria-label="Ver productos y comprar">
+                📱 VER PRODUCTOS Y COMPRAR
+            </button>
+            <div class="hero-benefits">
+                <div class="hero-benefit">✅ Sin mínimo de compra</div>
+                <div class="hero-benefit">⏰ Pedí antes de las 12hs</div>
+                <div class="hero-benefit">🚚 Llega el mismo día</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="social-proof">
+        <p class="social-proof-text">
+            ✅ <span class="social-proof-highlight">Más de 50 vecinos</span> ya compran así. 
+            Simple, rápido y confiable.
+        </p>
+    </div>
+
+    <!-- BANNER DE PRIMERA COMPRA -->
+    <div class="banner-primera-compra" id="bannerPrimeraCompra">
+        <div class="container">
+            <div class="banner-content">
+                <span class="banner-icon">🎁</span>
+                <div class="banner-texto">
+                    <strong>¡PRIMERA COMPRA!</strong>
+                    <span id="bannerMensaje">10% off + envío gratis en compras > $25.000</span>
+                </div>
+                <div class="banner-progreso" id="bannerProgreso">
+                    Llevás $0 · Te faltan $25.000
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN DE OFERTAS -->
+    <section class="ofertas-destacadas-section" id="ofertasSection">
+        <div class="container">
+            <h2 class="section-title">🔥 Ofertas de la Semana</h2>
+            <div class="ofertas-destacadas-grid" id="ofertasDestacadasGrid"></div>
+        </div>
+    </section>
+
+    <nav aria-label="Navegación principal">
+        <!-- 7. Breadcrumb con JSON-LD dinámico -->
+        <div class="breadcrumb" id="breadcrumb">
+            <a href="#" data-action="home">🏠 Inicio</a>
+        </div>
+
+        <div class="filters-header">
+            <button class="filters-toggle" id="filtersToggleBtn" aria-label="Abrir filtros">
+                <span class="filters-toggle-icon">▼</span>
+                <span class="filters-toggle-text">Filtrar productos</span>
+                <span class="filters-count zero" id="filtersCount">0</span>
+            </button>
+
+            <button class="filters-reset" id="filtersReset" onclick="resetFiltros()" disabled>
+                🔄 Limpiar filtros
+            </button>
+        </div>
+
+        <div class="filters-modal" id="filtersModal">
+            <div class="filters-modal-content">
+                <div class="filters-modal-header">
+                    <h3>Filtrar Productos</h3>
+                    <button class="close-filters" id="closeFiltersBtn" aria-label="Cerrar filtros">✕</button>
+                </div>
+                <div class="filters-modal-body">
+                    <div class="filter-group">
+                        <label for="seccionFilter">Sección</label>
+                        <select id="seccionFilter">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="familiaFilter">Familia</label>
+                        <select id="familiaFilter">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="subfamiliaFilter">Subfamilia</label>
+                        <select id="subfamiliaFilter">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filters-modal-footer">
+                    <button class="btn-primary" id="applyFiltersBtn">Aplicar Filtros</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="filters-container" id="filtersContainer">
+            <div class="filter-group">
+                <label>Sección</label>
+                <select id="seccionFilterDesktop">
+                    <option value="">Todas</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Familia</label>
+                <select id="familiaFilterDesktop">
+                    <option value="">Todas</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Subfamilia</label>
+                <select id="subfamiliaFilterDesktop">
+                    <option value="">Todas</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 class="section-title" id="sectionTitle">🌟 Nuestros Productos</h2>
+
+        <!-- 3. Skeleton loading para productos -->
+        <div class="products-grid skeleton-loading" id="productsGrid">
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+        </div>
+
+        <div class="related-products" id="relatedProducts" style="display: none;">
+            <h3>💡 También te puede interesar</h3>
+            <div class="related-grid" id="relatedGrid"></div>
+        </div>
+    </div>
+
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2>🛒 Mi Carrito</h2>
+            <button class="close-cart" id="closeCartBtn" aria-label="Cerrar carrito">✕</button>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-footer">
+            <div class="cart-savings" id="cartSavings" style="display: none;"></div>
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">$0</span>
+            </div>
+            <p style="font-size:0.85rem;color:#555;text-align:center;margin-bottom:10px;">
+                 ✅ Respondemos rápido • ❌ No pedimos datos bancarios • 📦 Retiro o envío
+            </p>
+            <button class="checkout-btn" id="checkoutBtn" aria-label="Comprar por WhatsApp">
+                <span>📲 Comprar por WhatsApp</span>
+            </button>
+            <button class="btn-secondary" id="clearCartBtn" aria-label="Vaciar carrito">
+                🗑️ Vaciar Carrito
+            </button>
+        </div>
+    </div>
+
+    <div class="password-modal" id="passwordModal">
+        <div class="password-content">
+            <h3>🔐 Acceso Administrador</h3>
+            <div class="form-group">
+                <input type="password" id="passwordInput" placeholder="Ingresá la contraseña" aria-label="Contraseña de administrador">
+            </div>
+            <div class="password-buttons">
+                <button class="btn-cancel" id="cancelPasswordBtn">Cancelar</button>
+                <button class="btn-confirm" id="confirmPasswordBtn">Ingresar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">
+            <h2>⚙️ Administración</h2>
+            <button class="close-admin" id="closeAdminBtn" aria-label="Cerrar panel de administración">✕</button>
+        </div>
+
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="import">📥 Importar</button>
+            <button class="admin-tab" data-tab="margins">💰 Márgenes</button>
+            <button class="admin-tab" data-tab="stock">📦 Stock</button>
+            <button class="admin-tab" data-tab="ofertas">🔥 Ofertas</button>
+            <button class="admin-tab" data-tab="add">➕ Agregar</button>
+            <button class="admin-tab" data-tab="products">📦 Productos</button>
+            <button class="admin-tab" data-tab="promos">🎁 Promociones</button>
+        </div>
+
+        <div class="admin-content active" id="importTab">
+            <h3 style="margin-bottom: 15px; color: var(--secondary);">📊 Importar Productos</h3>
+
+            <div style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);">
+                <h4 style="color: white; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    🔄 Sincronizar con Google Sheets
+                    <span style="background: rgba(255,255,255,0.3); padding: 3px 10px; border-radius: 15px; font-size: 0.7rem;">TIEMPO REAL</span>
+                </h4>
+                <p style="color: rgba(255,255,255,0.95); font-size: 0.9rem; margin-bottom: 15px;">
+                    Carga productos directamente desde tu Google Sheet.
+                </p>
+                <button class="btn-primary" onclick="cargarDesdeGoogleSheets()" style="background: white; color: #4CAF50; width: 100%; font-size: 1rem; padding: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <span style="font-size: 1.2rem;">📊</span>
+                    <span>Cargar desde Google Sheets</span>
+                </button>
+            </div>
+
+            <div style="border-top: 2px solid var(--accent); padding-top: 20px;">
+                <h4 style="color: var(--secondary); margin-bottom: 10px;">📁 O importar desde Excel (local)</h4>
+                <p style="color: var(--gray); margin-bottom: 20px; font-size: 0.9rem;">
+                    Columnas: <strong>descripcion, costo, Des. Seccion*, Des.Grp. Familia*, Stock, venta_diaria</strong>
+                </p>
+
+                <!-- 9. Validación de formato en importación -->
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-zone-icon">📁</div>
+                    <p><strong>Click para seleccionar</strong></p>
+                    <p style="font-size: 0.85rem; color: var(--gray);">o arrastrá el archivo aquí</p>
+                    <p style="font-size: 0.75rem; color: var(--gray); margin-top: 8px;">Formatos: .xlsx, .xls, .csv</p>
+                </div>
+                <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="display: none;">
+                <div id="fileValidationMsg" style="display: none; margin-top: 10px; padding: 10px; border-radius: 8px;"></div>
+
+                <button class="btn-primary" id="importBtn" style="margin-top: 15px;">📥 Importar desde Excel</button>
+                <button class="btn-success" id="exportBtn">📤 Exportar Todos los Productos</button>
+            </div>
+
+            <div id="previewContainer" style="margin-top: 20px; display: none;">
+                <div id="previewContent"></div>
+            </div>
+        </div>
+
+        <!-- Resto de tabs del admin... -->
+        <div class="admin-content" id="marginsTab">
+            <h3 style="margin-bottom: 15px; color: var(--secondary);">💰 Configuración de Márgenes</h3>
+
+            <div class="margin-config" style="border: 2px solid var(--primary);">
+                <h4 style="color: var(--primary);">📊 CONTROL DE CATÁLOGO INTELIGENTE</h4>
+
+                <div class="form-group">
+                    <label>🎯 Mostrar TOP <strong id="topValorDisplay">100</strong> productos más vendidos</label>
+                    <input type="range" id="topRange" min="10" max="6000" value="100" step="10" style="width: 100%;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <small>10 productos</small>
+                        <small id="sliderMedio">500 productos</small>
+                        <small id="sliderMax">6000 productos</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Número exacto:</label>
+                    <input type="number" id="topExacto" min="1" max="6000" value="100" step="1">
+                </div>
+
+                <div id="previewDinamico" style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                    <strong>📈 VISTA PREVIA:</strong><br>
+                    <span id="statsDinamicas">Cargando...</span>
+                </div>
+
+                <button class="btn-primary" onclick="guardarTopDinamico()" style="margin-top: 15px;">💾 Guardar</button>
+            </div>
+
+            <div class="margin-config">
+                <h4>📊 Margen General</h4>
+                <div class="form-group">
+                    <label for="margenGeneral">Margen base (%)</label>
+                    <input type="number" id="margenGeneral" value="30" min="0" max="500">
+                </div>
+                <button class="btn-primary" onclick="guardarMargenGeneral()">💾 Guardar</button>
+            </div>
+        </div>
+
+        <!-- Tabs adicionales... -->
+        <div class="admin-content" id="stockTab">
+            <h3 style="margin-bottom: 15px; color: var(--secondary);">📦 Control de Stock Inteligente</h3>
+            <!-- Contenido stock... -->
+        </div>
+
+        <div class="admin-content" id="ofertasTab">
+            <h3 style="margin-bottom: 15px; color: var(--secondary);">🔥 Gestión de Ofertas</h3>
+            <!-- Contenido ofertas... -->
+        </div>
+
+        <div class="admin-content" id="addTab">
+            <h3 style="margin-bottom: 20px; color: var(--secondary);">➕ Agregar Producto</h3>
+            <!-- Contenido agregar... -->
+        </div>
+
+        <div class="admin-content" id="productsTab">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <h3 style="color: var(--secondary); margin: 0;">📦 Productos</h3>
+                <button class="btn-delete" id="deleteAllBtn" style="padding: 10px 20px;">🗑️ Eliminar Todo</button>
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="buscarProductoAdmin" placeholder="Buscar...">
+            </div>
+
+            <div id="productListAdmin"></div>
+        </div>
+
+        <div class="admin-content" id="promosTab">
+            <h3 style="margin-bottom: 20px; color: var(--secondary);">🎁 Gestión de Promociones</h3>
+            <!-- Contenido promos... -->
+        </div>
+    </div>
+
+    <section class="final-cta">
+        <h3>¿Ya elegiste tus productos?</h3>
+        <p>Armá tu pedido ahora y te lo llevamos hoy mismo</p>
+        <button class="final-cta-btn" onclick="generarWhatsApp()" aria-label="Comprar por WhatsApp ahora">
+            📱 COMPRAR POR WHATSAPP AHORA
+        </button>
+    </section>
+
+    <div class="whatsapp-cta-mobile" id="whatsappCtaMobile" onclick="generarWhatsApp()" role="button">
+        <span class="whatsapp-icon">💬</span>
+        <span id="ctaMobileText">Comprar (0) - $0</span>
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a href="#">Términos</a>
+            <a href="#">Privacidad</a>
+            <a href="#">Contacto</a>
+        </div>
+        <p style="margin-top: 15px; opacity: 0.8;">
+            © 2024 Mercadito Virtual - Mendoza 🌄 | <span id="lastUpdate"></span>
+        </p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

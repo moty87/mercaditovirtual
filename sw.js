@@ -3,7 +3,7 @@
 // Modo Offline y Caché Inteligente
 // ============================================
 
-const CACHE_NAME = 'mercadito-mendoza-v2';
+const CACHE_NAME = 'mercadito-mendoza-v3';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
